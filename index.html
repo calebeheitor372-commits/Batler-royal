@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Ultimate Click RPG</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background: radial-gradient(circle at top, #0b102a, #000);
+  color:white;
+  text-align:center;
+}
+
+.top{
+  padding:20px;
+}
+
+.card{
+  background:rgba(20,20,40,0.85);
+  width:320px;
+  margin:20px auto;
+  padding:20px;
+  border-radius:15px;
+  box-shadow:0 0 25px #00ffff33;
+}
+
+.enemy{
+  width:180px;
+  height:180px;
+  margin:10px auto;
+  font-size:60px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#222;
+  border-radius:15px;
+  cursor:pointer;
+  box-shadow:0 0 15px red;
+}
+
+.boss{
+  box-shadow:0 0 30px gold;
+}
+
+.hp{
+  width:100%;
+  height:18px;
+  background:#333;
+  border-radius:10px;
+  margin:10px 0;
+}
+
+.hpbar{
+  height:100%;
+  width:100%;
+  background:red;
+  border-radius:10px;
+}
+
+button{
+  width:100%;
+  margin-top:10px;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.shop{background:#ffaa00;}
+.skill{background:#ff00ff;}
+.pet{background:#00ff88;}
+.reset{background:#ff4444;color:white;}
+</style>
+</head>
+
+<body>
+
+<div class="top">
+<h1>⚔️ Ultimate Click RPG</h1>
+</div>
+
+<div class="card">
+
+<p>💰 Moedas: <span id="coins">0</span></p>
+<p>⭐ XP: <span id="xp">0</span></p>
+<p>🏆 Level: <span id="level">1</span></p>
+<p>⚔️ Dano: <span id="dano">1</span></p>
+<p>🐾 Pet: <span id="pet">0</span></p>
+<p>🌍 Fase: <span id="fase">1</span></p>
+
+<div class="hp">
+<div class="hpbar" id="hpbar"></div>
+</div>
+
+<div class="enemy" id="enemy" onclick="hit()">
+👾
+</div>
+
+<p id="status">Inimigo apareceu</p>
+
+<button class="shop" onclick="upgrade()">🛒 Upgrade (10 moedas)</button>
+<button class="pet" onclick="buyPet()">🐾 Comprar Pet (30 moedas)</button>
+<button class="skill" onclick="skill()">🔥 Skill Especial</button>
+<button class="reset" onclick="reset()">Reset</button>
+
+</div>
+
+<script>
+
+let coins = parseInt(localStorage.getItem("coins")) || 0;
+let xp = parseInt(localStorage.getItem("xp")) || 0;
+let level = parseInt(localStorage.getItem("level")) || 1;
+let dano = parseInt(localStorage.getItem("dano")) || 1;
+let pet = parseInt(localStorage.getItem("pet")) || 0;
+let fase = parseInt(localStorage.getItem("fase")) || 1;
+
+let hp = 20;
+let maxHp = 20;
+let boss = false;
+
+function save(){
+  localStorage.setItem("coins",coins);
+  localStorage.setItem("xp",xp);
+  localStorage.setItem("level",level);
+  localStorage.setItem("dano",dano);
+  localStorage.setItem("pet",pet);
+  localStorage.setItem("fase",fase);
+}
+
+function update(){
+  document.getElementById("coins").innerText = coins;
+  document.getElementById("xp").innerText = xp;
+  document.getElementById("level").innerText = level;
+  document.getElementById("dano").innerText = dano;
+  document.getElementById("pet").innerText = pet;
+  document.getElementById("fase").innerText = fase;
+
+  document.getElementById("hpbar").style.width =
+    (hp/maxHp)*100 + "%";
+
+  save();
+}
+
+function hit(){
+
+  let total = dano + pet;
+
+  let crit = Math.random() < 0.2;
+  if(crit) total *= 3;
+
+  hp -= total;
+
+  if(hp <= 0) win();
+
+  update();
+}
+
+function win(){
+
+  coins += boss ? 80 : 15;
+  xp += boss ? 25 : 8;
+
+  if(xp >= 30){
+    level++;
+    xp = 0;
+  }
+
+  if(!boss && Math.random() < 0.3){
+    fase++;
+  }
+
+  spawn();
+}
+
+function spawn(){
+
+  boss = Math.random() < 0.25;
+
+  if(boss){
+    hp = 150 + fase*20;
+    maxHp = hp;
+    document.getElementById("enemy").innerText = "👹";
+    document.getElementById("status").innerText = "🔥 BOSS APARECEU!";
+  } else {
+    hp = 25 + fase*5;
+    maxHp = hp;
+    document.getElementById("enemy").innerText = "👾";
+    document.getElementById("status").innerText = "👾 Inimigo apareceu";
+  }
+
+  update();
+}
+
+function upgrade(){
+  if(coins >= 10){
+    coins -= 10;
+    dano++;
+  } else alert("Sem moedas!");
+  update();
+}
+
+function buyPet(){
+  if(coins >= 30){
+    coins -= 30;
+    pet++;
+  } else alert("Sem moedas!");
+  update();
+}
+
+function skill(){
+  if(level >= 3){
+    hp -= 60;
+    document.getElementById("status").innerText = "🔥 SKILL USADA!";
+    if(hp <= 0) win();
+  } else {
+    alert("Precisa level 3!");
+  }
+  update();
+}
+
+function reset(){
+  localStorage.clear();
+  location.reload();
+}
+
+setInterval(()=>{
+  coins += pet; // renda passiva
+  update();
+},3000);
+
+spawn();
+update();
+
+</script>
+
+</body>
+</html>
